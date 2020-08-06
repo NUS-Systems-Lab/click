@@ -1,9 +1,5 @@
 #!/usr/bin/python
 
-import sys
-
-# print(sys.path)
-
 from mininet.net import Mininet
 from mininet.node import Controller, OVSSwitch, Switch, Node
 from mininet.link import TCLink
@@ -45,19 +41,11 @@ def createTopo():
     h2 = net.addHost( 'h2')
 
     info( '*** Adding switch\n' )
-    s1 = net.addSwitch( 's1', config_file='switch.click', log_file='./log/s1.log', parameters=dict(HOST='s1-eth1', NETWORK='s1-eth2') )
-    s2 = net.addSwitch( 's2', config_file='switch.click', log_file='./log/s2.log', parameters=dict(HOST='s2-eth2', NETWORK='s2-eth1') )
-    s3 = net.addSwitch( 's3', config_file='macbr.click', log_file='./log/br.log')
+    s1 = net.addSwitch( 's1', config_file='macbr.click', log_file='./log/br.log')
 
     info( '*** Creating links\n' )
     l1 = net.addLink( h1, s1 )
-    l2 = net.addLink( s1, s3 )
-    l3 = net.addLink( s3, s2 )
-    l4 = net.addLink( h2, s2 )
-    l2.intf1.ifconfig("mtu", "50000")
-    l2.intf2.ifconfig("mtu", "50000")
-    l3.intf1.ifconfig("mtu", "50000")
-    l3.intf2.ifconfig("mtu", "50000")
+    l2 = net.addLink( s1, h2 )
 
     return net
 
@@ -72,8 +60,6 @@ if __name__ == '__main__':
     info( '*** Starting sshd on hosts\n')
     for h in nw.hosts:
         h.cmd('/usr/sbin/sshd -D -o UseDNS=no -u0 &')
-    # for h in nw.hosts:
-    #     waitListening(client=nw['h1'], server=h, port=22, timeout=2)
 
     CLI( nw )
 
