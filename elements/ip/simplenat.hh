@@ -20,7 +20,7 @@ class SimpleNat : public Element { public:
     SimpleNat() CLICK_COLD;
     ~SimpleNat() CLICK_COLD;
     const char *class_name() const		{ return "SimpleNat"; }
-    const char *port_count() const		{ return PORTS_1X2_1X2; }
+    const char *port_count() const		{ return "2/2"; }
     const char *processing() const		{ return PUSH; }
     int configure(Vector<String> &, ErrorHandler *) CLICK_COLD;
     bool can_live_reconfigure() const		{ return true; }
