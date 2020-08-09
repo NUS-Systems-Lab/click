@@ -17,6 +17,7 @@
  */
 
 #include<iostream>
+// #include <clicknet/ether.h>
 #include <clicknet/ip.h>
 #include <click/config.h>
 #include "simplenat.hh"
@@ -52,6 +53,7 @@ SimpleNat::add(bi_ip_map &mapping, const String &arg, ErrorHandler *errh) const
         IPAddress internal,external;
         if (IPPrefixArg(true).parse(words[i], internal, external, this)) {
         mapping.insert({internal.addr(),external.addr()});  
+        // std::cout<<internal.addr()<<" "<<external.addr()<<std::endl;
         }
     }
     return 0;   
@@ -71,38 +73,60 @@ SimpleNat::configure(Vector<String> &conf, ErrorHandler *errh)
 	return -1;
 }
 
-// WritablePacket *
-// SimpleNat::simple_action(Packet *p_in)
-// {
-//     p_in->set_mac_header(p_in->data() + 0,14);
-//     WritablePacket *p = p_in->uniqueify();
-//     click_ip *ip = p->ip_header();
-//     const uint16_t old_hw1 = (reinterpret_cast<uint16_t *>(ip))[6];
-//     std::cout<<""<<std::endl;
-//     const uint16_t old_hw2 = (reinterpret_cast<uint16_t *>(ip))[7];
-//     std::cout<<""<<std::endl;
-//     if(bi_mapping.find((ip->ip_src).s_addr)!=_mapping.end()){
-//        (ip->ip_src).s_addr=_mapping.at((ip->ip_src).s_addr);
-//        const uint16_t new_hw1 = (reinterpret_cast<uint16_t *>(ip)[6]);
-//        const uint16_t new_hw2 = (reinterpret_cast<uint16_t *>(ip)[7]);
-//        click_update_in_cksum(&ip->ip_sum,old_hw1,new_hw1);
-//        click_update_in_cksum(&ip->ip_sum,old_hw2,new_hw2);
-//        p_in->kill();
-//        return p;
-//     }
-//     else{
-//         checked_output_push(1, p);
-//         WritablePacket *a=0;
-//         return a;
-//     }
-    
-// }
 
 void 
 SimpleNat::push(int i, Packet *p_in)
 {
-    p_in->set_mac_header(p_in->data() + 0,14);
     WritablePacket *p = p_in->uniqueify();
+    // p->set_mac_header(p->data()+0,14);
+    p->set_ether_header(reinterpret_cast<click_ether *>(const_cast<unsigned char*>(p->data())));
+    click_ether *ether = p->ether_header();
+    // std::cout<<ether->ether_type<<std::endl;
+    if (ether->ether_type==htons(ETHERTYPE_ARP)){
+        click_ether_arp *ea = (click_ether_arp *) (ether + 1);
+        if (i==0){
+            in_addr_t src=0;
+            // std::cout<<src<<std::endl;
+            for(int i=0;i<4;++i){
+                uint32_t src_middle;
+                // std::cout<<(ea->arp_spa)[i]<<std::endl;
+                src_middle=*(ea->arp_spa+i);
+                // std::cout<<src_middle<<" "<<sizeof(src_middle)<<std::endl;
+                src=src | (src_middle<<(8*i));
+                // std::cout<<std::hex<<src<<std::endl;
+                }
+            // std::cout<<bi_mapping.left.at(src)<<std::endl;
+            if(bi_mapping.left.find(src)!=bi_mapping.left.end()){
+                // std::cout<<src<<std::endl;
+                uint8_t short_src[4];
+                for (int i=0;i<4;++i){short_src[i]=((bi_mapping.left.at(src))>>(8*i));}
+                memcpy(ea->arp_spa,short_src,4);
+            }
+            output(0).push(p);
+        }
+        else if (i==1){
+            in_addr_t dst=0;
+            // std::cout<<src<<std::endl;
+            for(int i=0;i<4;++i){
+                uint32_t dst_middle;
+                // std::cout<<(ea->arp_spa)[i]<<std::endl;
+                dst_middle=*(ea->arp_tpa+i);
+                // std::cout<<dst_middle<<" "<<sizeof(dst_middle)<<std::endl;
+                dst=dst | (dst_middle<<(8*i));
+                // std::cout<<std::hex<<dst<<std::endl;
+                }
+            // std::cout<<bi_mapping.left.at(src)<<std::endl;
+            if(bi_mapping.right.find(dst)!=bi_mapping.right.end()){
+                uint8_t short_dst[4];
+                for (int i=0;i<4;++i){short_dst[i]=((bi_mapping.right.at(dst))>>(8*i));}
+                memcpy(ea->arp_tpa,short_dst,4);
+            }
+            output(1).push(p);
+        }
+    }
+    else if (ether->ether_type==htons(ETHERTYPE_IP)){
+    // WritablePacket *p = p_in->uniqueify();
+    // p->set_mac_header(p->data() + 0,14);
     click_ip *ip = p->ip_header(); 
     if (i==0){
        if(bi_mapping.left.find((ip->ip_src).s_addr)!=bi_mapping.left.end()){
@@ -133,6 +157,7 @@ SimpleNat::push(int i, Packet *p_in)
        p_in->kill();       
        }
        output(1).push(p);
+    }
     }
 }
 
