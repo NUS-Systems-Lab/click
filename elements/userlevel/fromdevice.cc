@@ -53,6 +53,13 @@
 # include <net/ethernet.h>
 #endif
 
+// Fix for newer Linux kernel
+#ifndef SIOCGSTAMP
+ #ifdef SIOCGSTAMP_OLD
+  #define SIOCGSTAMP SIOCGSTAMP_OLD
+ #endif
+#endif
+
 CLICK_DECLS
 
 FromDevice::FromDevice()

@@ -42,6 +42,13 @@ extern "C" {
 #include "fakepcap.hh"
 #include <clicknet/udp.h>
 
+// Fix for newer Linux kernel
+#ifndef SIOCGSTAMP
+ #ifdef SIOCGSTAMP_OLD
+  #define SIOCGSTAMP SIOCGSTAMP_OLD
+ #endif
+#endif
+
 CLICK_DECLS
 
 IPFlowRawSockets::Flow::Flow(const Packet *p)
