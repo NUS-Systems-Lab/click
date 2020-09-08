@@ -1,6 +1,6 @@
 define($PA s1-eth1, $PB s1-eth2, $PC s1-eth3)
 
-macbr :: MyEtherSwitch(TIMEOUT 500, DISABLE 1)
+macbr :: MyEtherSwitch(TIMEOUT 500)
 // macbr :: MyEtherSwitch
 
 elementclass TransChecksumFix {

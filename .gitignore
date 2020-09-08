@@ -27,3 +27,7 @@ stamp-h
 
 
 /_testbench/log/**
+/html/**
+/latex/**
+/doc/html/**
+/doc/latex/**

@@ -31,7 +31,8 @@ class ClickUserSwitch(Switch):
 
 def createTopo():
 
-    net = Mininet( controller=Controller, switch=ClickUserSwitch, link=TCLink )
+    # net = Mininet( controller=Controller, switch=ClickUserSwitch, link=TCLink )
+    net = Mininet()
 
     info( '*** Adding controller\n' )
     net.addController( 'c0' )
@@ -42,7 +43,8 @@ def createTopo():
     h3 = net.addHost( 'h3')
 
     info( '*** Adding switch\n' )
-    s1 = net.addSwitch( 's1', config_file='macbr.click', log_file='./log/br.log')
+    # s1 = net.addSwitch( 's1', config_file='macbr.click', log_file='./log/br.log')
+    s1 = net.addSwitch('s1')
 
     info( '*** Creating links\n' )
     l1 = net.addLink( h1, s1 )

@@ -67,8 +67,8 @@ MyEtherSwitch::configure(Vector<String> &conf, ErrorHandler *errh)
         }
     }
 
-    for (int i = 0; i < _portfwd.size(); i++)
-        click_chatter("port %d: %s\n", i, _portfwd[i] ? "enabled" : "disabled");
+    // for (int i = 0; i < _portfwd.size(); i++)
+    //     click_chatter("port %d: %s\n", i, _portfwd[i] ? "enabled" : "disabled");
 
     return ret;
 }
